@@ -81,6 +81,10 @@ type Ethereum struct {
 	seqRPCService        *rpc.Client
 	historicalRPCService *rpc.Client
 
+	blacklistingDepositsEnabled     bool
+	blacklistingTransactionsEnabled bool
+	blacklistedAddresses            map[common.Address]struct{}
+
 	// DB interfaces
 	chainDb ethdb.Database // Block chain database
 
@@ -164,21 +168,24 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 		networkID = chainConfig.ChainID.Uint64()
 	}
 	eth := &Ethereum{
-		config:            config,
-		merger:            consensus.NewMerger(chainDb),
-		chainDb:           chainDb,
-		eventMux:          stack.EventMux(),
-		accountManager:    stack.AccountManager(),
-		engine:            engine,
-		closeBloomHandler: make(chan struct{}),
-		networkID:         networkID,
-		gasPrice:          config.Miner.GasPrice,
-		etherbase:         config.Miner.Etherbase,
-		bloomRequests:     make(chan chan *bloombits.Retrieval),
-		bloomIndexer:      core.NewBloomIndexer(chainDb, params.BloomBitsBlocks, params.BloomConfirms),
-		p2pServer:         stack.Server(),
-		shutdownTracker:   shutdowncheck.NewShutdownTracker(chainDb),
-		nodeCloser:        stack.Close,
+		config:                          config,
+		merger:                          consensus.NewMerger(chainDb),
+		chainDb:                         chainDb,
+		eventMux:                        stack.EventMux(),
+		accountManager:                  stack.AccountManager(),
+		engine:                          engine,
+		closeBloomHandler:               make(chan struct{}),
+		networkID:                       networkID,
+		gasPrice:                        config.Miner.GasPrice,
+		etherbase:                       config.Miner.Etherbase,
+		bloomRequests:                   make(chan chan *bloombits.Retrieval),
+		bloomIndexer:                    core.NewBloomIndexer(chainDb, params.BloomBitsBlocks, params.BloomConfirms),
+		p2pServer:                       stack.Server(),
+		shutdownTracker:                 shutdowncheck.NewShutdownTracker(chainDb),
+		nodeCloser:                      stack.Close,
+		blacklistedAddresses:            config.BlacklistedAddresses,
+		blacklistingDepositsEnabled:     config.BlacklistDeposits,
+		blacklistingTransactionsEnabled: config.BlacklistTransactions,
 	}
 	bcVersion := rawdb.ReadDatabaseVersion(chainDb)
 	dbVer := "<nil>"
@@ -526,8 +533,18 @@ func (s *Ethereum) StopMining() {
 func (s *Ethereum) IsMining() bool      { return s.miner.Mining() }
 func (s *Ethereum) Miner() *miner.Miner { return s.miner }
 
-func (s *Ethereum) AccountManager() *accounts.Manager  { return s.accountManager }
-func (s *Ethereum) BlockChain() *core.BlockChain       { return s.blockchain }
+func (s *Ethereum) AccountManager() *accounts.Manager { return s.accountManager }
+func (s *Ethereum) BlockChain() *core.BlockChain      { return s.blockchain }
+func (s *Ethereum) IsBlacklisted(addr common.Address) bool {
+	_, found := s.blacklistedAddresses[addr]
+	return found
+}
+func (s *Ethereum) BlacklistingTransactionsEnabled() bool {
+	return len(s.blacklistedAddresses) > 0 && s.blacklistingTransactionsEnabled
+}
+func (s *Ethereum) BlacklistingDepositsEnabled() bool {
+	return len(s.blacklistedAddresses) > 0 && s.blacklistingDepositsEnabled
+}
 func (s *Ethereum) TxPool() *txpool.TxPool             { return s.txPool }
 func (s *Ethereum) EventMux() *event.TypeMux           { return s.eventMux }
 func (s *Ethereum) Engine() consensus.Engine           { return s.engine }

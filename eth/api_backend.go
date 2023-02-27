@@ -165,6 +165,22 @@ func (b *EthAPIBackend) GetBody(ctx context.Context, hash common.Hash, number rp
 	return nil, errors.New("block body not found")
 }
 
+func (b *EthAPIBackend) BlockChain() *core.BlockChain {
+	return b.eth.blockchain
+}
+
+func (b *EthAPIBackend) IsBlacklisted(addr common.Address) bool {
+	return b.eth.IsBlacklisted(addr)
+}
+
+func (b *EthAPIBackend) BlacklistingDepositsEnabled() bool {
+	return b.eth.BlacklistingDepositsEnabled()
+}
+
+func (b *EthAPIBackend) BlacklistingTransactionsEnabled() bool {
+	return b.eth.BlacklistingTransactionsEnabled()
+}
+
 func (b *EthAPIBackend) BlockByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*types.Block, error) {
 	if blockNr, ok := blockNrOrHash.Number(); ok {
 		return b.BlockByNumber(ctx, blockNr)

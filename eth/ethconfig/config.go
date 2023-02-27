@@ -186,6 +186,10 @@ type Config struct {
 	RollupDisableTxPoolGossip               bool
 	RollupDisableTxPoolAdmission            bool
 	RollupHaltOnIncompatibleProtocolVersion string
+
+	BlacklistedAddresses  map[common.Address]struct{}
+	BlacklistDeposits     bool
+	BlacklistTransactions bool
 }
 
 // CreateConsensusEngine creates a consensus engine for the given chain config.
