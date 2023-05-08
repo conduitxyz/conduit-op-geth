@@ -25,6 +25,7 @@ COPY --from=builder /go-ethereum/build/bin/geth /usr/local/bin/
 RUN apk add --no-cache jq
 
 COPY entrypoint.sh /entrypoint.sh
+COPY entrypoint_replica.sh /entrypoint_replica.sh
 
 VOLUME ["/db"]
 EXPOSE 8545 8546 30303 30303/udp
