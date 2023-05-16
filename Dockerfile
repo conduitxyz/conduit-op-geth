@@ -22,7 +22,7 @@ FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /go-ethereum/build/bin/geth /usr/local/bin/
 
-RUN apk add --no-cache jq
+RUN apk add --no-cache jq supervisor
 
 COPY entrypoint.sh /entrypoint.sh
 COPY entrypoint_replica.sh /entrypoint_replica.sh
