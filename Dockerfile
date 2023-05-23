@@ -22,7 +22,10 @@ FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /go-ethereum/build/bin/geth /usr/local/bin/
 
-RUN apk add --no-cache jq supervisor
+RUN apk add --no-cache jq supervisor curl
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.25.0/bin/linux/amd64/kubectl && \
+    chmod +x ./kubectl && \
+    mv ./kubectl /usr/local/bin/kubectl
 
 COPY entrypoint.sh /entrypoint.sh
 COPY entrypoint_replica.sh /entrypoint_replica.sh
