@@ -34,6 +34,27 @@ else
 	echo "$GETH_CHAINDATA_DIR exists."
 fi
 
+
+OPT_FLAGS=""
+
+# Featureflag for Geth P2p Discovery
+# HACK: Should do this in DNS more properly
+if [[ "${P2P_DISCOVERY}" ]]; then
+	P2P_TMP_DIR=`mktemp -d`
+
+	echo "opstandby-0" | sha256sum | cut -d ' ' -f 1 > $P2P_TMP_DIR/standby.key  # HACK: Ugly hardcoded names
+	echo "optimisml2-0" | sha256sum | cut -d ' ' -f 1 > $P2P_TMP_DIR/master.key
+
+	BOOTNODES="`devp2p key to-enode $P2P_TMP_DIR/standby.key | sed 's/127.0.0.1/opstandby-0.opstandby/'`,`devp2p key to-enode $P2P_TMP_DIR/master.key | sed 's/127.0.0.1/optimisml2-0.l2/'`"
+
+	rm -r $P2P_TMP_DIR
+
+	hostname | sha256sum | cut -d ' ' -f 1 > "$GETH_DATA_DIR/nodekey"
+	chmod go-rw "$GETH_DATA_DIR/nodekey"
+
+	OPT_FLAGS="${OPT_FLAGS} --bootnodes '$BOOTNODES' --nodekey '$GETH_DATA_DIR/nodekey'"
+fi
+
 # Warning: Archive mode is required, otherwise old trie nodes will be
 # pruned within minutes of starting the devnet.
 
@@ -65,4 +86,5 @@ exec geth \
 	--authrpc.vhosts="*" \
 	--authrpc.jwtsecret=/config/jwt-secret.txt \
 	--gcmode=archive \
+	$OPT_FLAGS \
 	"$@"

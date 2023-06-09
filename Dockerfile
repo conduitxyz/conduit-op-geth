@@ -14,13 +14,13 @@ COPY go.sum /go-ethereum/
 RUN cd /go-ethereum && go mod download
 
 ADD . /go-ethereum
-RUN cd /go-ethereum && go run build/ci.go install -static ./cmd/geth
+RUN cd /go-ethereum && go run build/ci.go install -static ./cmd/geth ./cmd/devp2p
 
 # Pull Geth into a second stage deploy alpine container
 FROM alpine:latest
 
 RUN apk add --no-cache ca-certificates
-COPY --from=builder /go-ethereum/build/bin/geth /usr/local/bin/
+COPY --from=builder /go-ethereum/build/bin/* /usr/local/bin/
 
 RUN apk add --no-cache jq supervisor curl
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.25.0/bin/linux/amd64/kubectl && \
