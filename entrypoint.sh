@@ -35,11 +35,14 @@ else
 fi
 
 
-OPT_FLAGS=""
+BOOTNODES=""
+NODEKEY=""
 
 # Featureflag for Geth P2p Discovery
 # HACK: Should do this in DNS more properly
-if [[ "${P2P_DISCOVERY}" ]]; then
+set +o nounset
+if [ ! -z "${P2P_DISCOVERY}" ]; then
+  set -o nounset
 	P2P_TMP_DIR=`mktemp -d`
 
 	echo "opstandby-0" | sha256sum | cut -d ' ' -f 1 > $P2P_TMP_DIR/standby.key  # HACK: Ugly hardcoded names
@@ -52,8 +55,10 @@ if [[ "${P2P_DISCOVERY}" ]]; then
 	hostname | sha256sum | cut -d ' ' -f 1 > "$GETH_DATA_DIR/nodekey"
 	chmod go-rw "$GETH_DATA_DIR/nodekey"
 
-	OPT_FLAGS="${OPT_FLAGS} --bootnodes '$BOOTNODES' --nodekey '$GETH_DATA_DIR/nodekey'"
+  NODEKEY="$GETH_DATA_DIR/nodekey"
+
 fi
+set -o nounset
 
 # Warning: Archive mode is required, otherwise old trie nodes will be
 # pruned within minutes of starting the devnet.
@@ -86,5 +91,6 @@ exec geth \
 	--authrpc.vhosts="*" \
 	--authrpc.jwtsecret=/config/jwt-secret.txt \
 	--gcmode=archive \
-	$OPT_FLAGS \
+	--bootnodes="$BOOTNODES" \
+	--nodekey="$NODEKEY" \
 	"$@"
