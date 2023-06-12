@@ -34,29 +34,16 @@ else
 	echo "$GETH_CHAINDATA_DIR exists."
 fi
 
-
-BOOTNODES=""
 NODEKEY=""
-
 # Featureflag for Geth P2p Discovery
 # HACK: Should do this in DNS more properly
 set +o nounset
 if [ ! -z "${P2P_DISCOVERY}" ]; then
-  set -o nounset
-	P2P_TMP_DIR=`mktemp -d`
-
-	echo "opstandby-0" | sha256sum | cut -d ' ' -f 1 > $P2P_TMP_DIR/standby.key  # HACK: Ugly hardcoded names
-	echo "optimisml2-0" | sha256sum | cut -d ' ' -f 1 > $P2P_TMP_DIR/master.key
-
-	BOOTNODES="`devp2p key to-enode $P2P_TMP_DIR/standby.key | sed 's/127.0.0.1/opstandby-0.opstandby/'`,`devp2p key to-enode $P2P_TMP_DIR/master.key | sed 's/127.0.0.1/optimisml2-0.l2/'`"
-
-	rm -r $P2P_TMP_DIR
-
-	hostname | sha256sum | cut -d ' ' -f 1 > "$GETH_DATA_DIR/nodekey"
+  # Set nodekey to known value based off of hostname (of pod)
+	hostname | tr -d '\n' | sha256sum | cut -d ' ' -f 1 > "$GETH_DATA_DIR/nodekey"
 	chmod go-rw "$GETH_DATA_DIR/nodekey"
 
   NODEKEY="$GETH_DATA_DIR/nodekey"
-
 fi
 set -o nounset
 
@@ -78,8 +65,6 @@ exec geth \
 	--ws.origins="*" \
 	--ws.api=debug,eth,txpool,net,engine \
 	--syncmode=full \
-	--nodiscover \
-	--maxpeers=1 \
 	--networkid=$CHAIN_ID \
 	--unlock=$BLOCK_SIGNER_ADDRESS \
 	--mine \
@@ -91,6 +76,5 @@ exec geth \
 	--authrpc.vhosts="*" \
 	--authrpc.jwtsecret=/config/jwt-secret.txt \
 	--gcmode=archive \
-	--bootnodes="$BOOTNODES" \
 	--nodekey="$NODEKEY" \
 	"$@"

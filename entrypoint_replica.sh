@@ -34,6 +34,19 @@ else
 	echo "$GETH_CHAINDATA_DIR exists."
 fi
 
+NODEKEY=""
+# Featureflag for Geth P2p Discovery
+# HACK: Should do this in DNS more properly
+set +o nounset
+if [ ! -z "${P2P_DISCOVERY}" ]; then
+  # Set nodekey to known value based off of hostname (of pod)
+	hostname | tr -d '\n' | sha256sum | cut -d ' ' -f 1 > "$GETH_DATA_DIR/nodekey"
+	chmod go-rw "$GETH_DATA_DIR/nodekey"
+
+  NODEKEY="$GETH_DATA_DIR/nodekey"
+fi
+set -o nounset
+
 # Warning: Archive mode is required, otherwise old trie nodes will be
 # pruned within minutes of starting the devnet.
 
@@ -52,8 +65,6 @@ exec geth \
 	--ws.origins="*" \
 	--ws.api=debug,eth,txpool,net,engine \
 	--syncmode=full \
-	--nodiscover \
-	--maxpeers=1 \
 	--networkid=$CHAIN_ID \
 	--password="$GETH_DATA_DIR"/password \
 	--allow-insecure-unlock \
@@ -62,4 +73,5 @@ exec geth \
 	--authrpc.vhosts="*" \
 	--authrpc.jwtsecret=/config/jwt-secret.txt \
 	--gcmode=archive \
+	--nodekey="$NODEKEY" \
 	"$@"
