@@ -34,18 +34,13 @@ else
 	echo "$GETH_CHAINDATA_DIR exists."
 fi
 
-NODEKEY=""
 # Featureflag for Geth P2p Discovery
 # HACK: Should do this in DNS more properly
-set +o nounset
-if [ ! -z "${P2P_DISCOVERY}" ]; then
-  # Set nodekey to known value based off of hostname (of pod)
-	hostname | tr -d '\n' | sha256sum | cut -d ' ' -f 1 > "$GETH_DATA_DIR/nodekey"
-	chmod go-rw "$GETH_DATA_DIR/nodekey"
+# Set nodekey to known value based off of hostname (of pod)
+hostname | tr -d '\n' | sha256sum | cut -d ' ' -f 1 > "$GETH_DATA_DIR/nodekey"
+chmod go-rw "$GETH_DATA_DIR/nodekey"
 
-  NODEKEY="$GETH_DATA_DIR/nodekey"
-fi
-set -o nounset
+NODEKEY="$GETH_DATA_DIR/nodekey"
 
 # Warning: Archive mode is required, otherwise old trie nodes will be
 # pruned within minutes of starting the devnet.
