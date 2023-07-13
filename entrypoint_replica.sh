@@ -61,8 +61,6 @@ exec geth \
 	--ws.api=debug,eth,txpool,net,engine \
 	--syncmode=full \
 	--networkid=$CHAIN_ID \
-	--password="$GETH_DATA_DIR"/password \
-	--allow-insecure-unlock \
 	--authrpc.addr="0.0.0.0" \
 	--authrpc.port="8551" \
 	--authrpc.vhosts="*" \
