@@ -37,7 +37,7 @@ fi
 # Featureflag for Geth P2p Discovery
 # HACK: Should do this in DNS more properly
 # Set nodekey to known value based off of hostname (of pod)
-hostname | tr -d '\n' | sha256sum | cut -d ' ' -f 1 > "$GETH_DATA_DIR/nodekey"
+echo ${POD_NAMESPACE}-${HOSTNAME} | tr -d '\n' | sha256sum | cut -d ' ' -f 1 > "$GETH_DATA_DIR/nodekey"
 chmod go-rw "$GETH_DATA_DIR/nodekey"
 
 NODEKEY="$GETH_DATA_DIR/nodekey"
