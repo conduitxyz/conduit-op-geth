@@ -394,10 +394,6 @@ func (b *backendMock) TxPoolContent() (map[common.Address][]*types.Transaction, 
 func (b *backendMock) TxPoolContentFrom(addr common.Address) ([]*types.Transaction, []*types.Transaction) {
 	return nil, nil
 }
-func (b *backendMock) BlockChain() *core.BlockChain                                         { return nil }
-func (b *backendMock) IsBlacklisted(addr common.Address) bool                               { return true }
-func (b *backendMock) BlacklistingTransactionsEnabled() bool                                { return false }
-func (b *backendMock) BlacklistingDepositsEnabled() bool                                    { return false }
 func (b *backendMock) SubscribeNewTxsEvent(chan<- core.NewTxsEvent) event.Subscription      { return nil }
 func (b *backendMock) BloomStatus() (uint64, uint64)                                        { return 0, 0 }
 func (b *backendMock) ServiceFilter(ctx context.Context, session *bloombits.MatcherSession) {}

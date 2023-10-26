@@ -31,8 +31,9 @@ COPY entrypoint.sh /entrypoint.sh
 COPY entrypoint_replica.sh /entrypoint_replica.sh
 
 VOLUME ["/db"]
+
 EXPOSE 8545 8546 30303 30303/udp
-ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
+ENTRYPOINT ["geth"]
 
 # Add some metadata labels to help programatic image consumption
 ARG COMMIT=""

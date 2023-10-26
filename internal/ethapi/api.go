@@ -2095,20 +2095,7 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 	head := b.CurrentBlock()
 	signer := types.MakeSigner(b.ChainConfig(), head.Number, head.Time)
 	from, err := types.Sender(signer, tx)
-	if err == nil {
-		if b.IsBlacklisted(from) {
-			return common.Hash{}, fmt.Errorf("transaction from blacklisted address: %s", from.String())
-		}
-	}
-
-	to := tx.To()
-	if to != nil {
-		if b.IsBlacklisted(*to) {
-			return common.Hash{}, fmt.Errorf("transaction from blacklisted address: %s", to.String())
-		}
-	}
-
-	if err := b.SendTx(ctx, tx); err != nil {
+	if err != nil {
 		return common.Hash{}, err
 	}
 

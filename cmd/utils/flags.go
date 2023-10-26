@@ -23,7 +23,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io"
 	"math"
 	"math/big"
 	"net"
@@ -884,23 +883,6 @@ var (
 		Usage:    "Minimum transaction priority fee to suggest. Used on OP chains when blocks are not full.",
 		Value:    ethconfig.Defaults.GPO.MinSuggestedPriorityFee.Int64(),
 		Category: flags.GasPriceCategory,
-	}
-
-	// Blacklist Config
-	BlacklistedAddressFileFlag = &cli.StringFlag{
-		Name:     "rollup.blacklistedAddressesFile",
-		Usage:    "local file to load in blacklisted addresses",
-		Category: flags.RollupCategory,
-	}
-	BlacklistDepositsFlag = &cli.BoolFlag{
-		Name:     "rollup.blacklistDeposits",
-		Usage:    "whether to apply the blacklist on deposits",
-		Category: flags.RollupCategory,
-	}
-	BlacklistTransactionsFlag = &cli.BoolFlag{
-		Name:     "rollup.blacklistTransactions",
-		Usage:    "whether to apply the blacklist on transactions",
-		Category: flags.RollupCategory,
 	}
 
 	// Rollup Flags
@@ -1905,38 +1887,6 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 			cfg.EthDiscoveryURLs = SplitAndTrim(urls)
 		}
 	}
-
-	// Parse and read the blacklisted addresses from the specified file
-	if bf := ctx.String(BlacklistedAddressFileFlag.Name); bf != "" {
-		//log.Info("blacklisted addresses specified, loading from", "file", bf)
-		f, err := os.Open(bf)
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
-
-		b, err := io.ReadAll(f)
-		if err != nil {
-			panic(err)
-		}
-
-		blacklistedMap := make(map[common.Address]struct{})
-		addresses := strings.Split(string(b), "\n")
-		for _, addr := range addresses {
-			if addr == "" {
-				continue
-			}
-			parsedAddr := common.HexToAddress(addr)
-			blacklistedMap[parsedAddr] = struct{}{}
-		}
-
-		cfg.BlacklistedAddresses = blacklistedMap
-		cfg.BlacklistDeposits = ctx.Bool(BlacklistDepositsFlag.Name)
-		cfg.BlacklistTransactions = ctx.Bool(BlacklistTransactionsFlag.Name)
-
-		//log.Info("blacklisted addresses", "addresses", blacklistedMap)
-	}
-
 	// Only configure sequencer http flag if we're running in verifier mode i.e. --mine is disabled.
 	if ctx.IsSet(RollupSequencerHTTPFlag.Name) && !ctx.IsSet(MiningEnabledFlag.Name) {
 		cfg.RollupSequencerHTTP = ctx.String(RollupSequencerHTTPFlag.Name)

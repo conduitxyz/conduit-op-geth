@@ -56,22 +56,6 @@ func (b *LesApiBackend) CurrentBlock() *types.Header {
 	return b.eth.BlockChain().CurrentHeader()
 }
 
-func (b *LesApiBackend) BlockChain() *core.BlockChain {
-	return nil
-}
-
-func (b *LesApiBackend) IsBlacklisted(addr common.Address) bool {
-	return true
-}
-
-func (b *LesApiBackend) BlacklistingDepositsEnabled() bool {
-	return false
-}
-
-func (b *LesApiBackend) BlacklistingTransactionsEnabled() bool {
-	return false
-}
-
 func (b *LesApiBackend) SetHead(number uint64) {
 	b.eth.blockchain.SetHead(number)
 }
