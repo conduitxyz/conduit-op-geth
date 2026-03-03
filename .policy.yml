@@ -38,6 +38,7 @@ approval_rules:
         teams:
           - conduitxyz/org_engineering
           - conduitxyz/org_product
+          - conduitxyz/org_gtm_solutions
     requires:
       count: 0
 
@@ -51,6 +52,7 @@ approval_rules:
       teams:
         - conduitxyz/org_engineering
         - conduitxyz/org_product
+        - conduitxyz/org_gtm_solutions
     options:
       allow_author: false
       invalidate_on_push: true
