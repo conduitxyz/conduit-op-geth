@@ -585,7 +585,7 @@ func (api *API) IntermediateRoots(ctx context.Context, hash common.Hash, config 
 		}
 		msg, _ := core.TransactionToMessage(tx, signer, block.BaseFee())
 		statedb.SetTxContext(tx.Hash(), i)
-		if _, err := core.ApplyMessage(evm, msg, new(core.GasPool).AddGas(msg.GasLimit)); err != nil {
+		if _, err := core.ApplyMessage(evm, msg, nil); err != nil {
 			log.Warn("Tracing intermediate roots did not complete", "txindex", i, "txhash", tx.Hash(), "err", err)
 			// We intentionally don't return the error here: if we do, then the RPC server will not
 			// return the roots. Most likely, the caller already knows that a certain transaction fails to
@@ -742,7 +742,7 @@ txloop:
 		// Generate the next state snapshot fast without tracing
 		msg, _ := core.TransactionToMessage(tx, signer, block.BaseFee())
 		statedb.SetTxContext(tx.Hash(), i)
-		if _, err := core.ApplyMessage(evm, msg, new(core.GasPool).AddGas(msg.GasLimit)); err != nil {
+		if _, err := core.ApplyMessage(evm, msg, nil); err != nil {
 			failed = err
 			break txloop
 		}
@@ -828,7 +828,7 @@ func (api *API) standardTraceBlockToFile(ctx context.Context, block *types.Block
 		msg, _ := core.TransactionToMessage(tx, signer, block.BaseFee())
 		if txHash != (common.Hash{}) && tx.Hash() != txHash {
 			// Process the tx to update state, but don't trace it.
-			_, err := core.ApplyMessage(evm, msg, new(core.GasPool).AddGas(msg.GasLimit))
+			_, err := core.ApplyMessage(evm, msg, nil)
 			if err != nil {
 				return dumps, err
 			}
@@ -863,7 +863,7 @@ func (api *API) standardTraceBlockToFile(ctx context.Context, block *types.Block
 		if tracer.OnTxStart != nil {
 			tracer.OnTxStart(evm.GetVMContext(), tx, msg.From)
 		}
-		_, err = core.ApplyMessage(evm, msg, new(core.GasPool).AddGas(msg.GasLimit))
+		_, err = core.ApplyMessage(evm, msg, nil)
 		if writer != nil {
 			writer.Flush()
 		}
@@ -1064,7 +1064,6 @@ func (api *API) traceTx(ctx context.Context, tx *types.Transaction, message *cor
 		tracer  *Tracer
 		err     error
 		timeout = defaultTraceTimeout
-		usedGas uint64
 	)
 	if config == nil {
 		config = &TraceConfig{}
@@ -1108,7 +1107,8 @@ func (api *API) traceTx(ctx context.Context, tx *types.Transaction, message *cor
 
 	// Call Prepare to clear out the statedb access list
 	statedb.SetTxContext(txctx.TxHash, txctx.TxIndex)
-	_, err = core.ApplyTransactionWithEVM(message, new(core.GasPool).AddGas(message.GasLimit), statedb, vmctx.BlockNumber, txctx.BlockHash, vmctx.Time, tx, &usedGas, evm)
+
+	_, err = core.ApplyTransactionWithEVM(message, core.NewGasPool(message.GasLimit), statedb, vmctx.BlockNumber, txctx.BlockHash, vmctx.Time, tx, evm)
 	if err != nil {
 		return nil, fmt.Errorf("tracing failed: %w", err)
 	}
